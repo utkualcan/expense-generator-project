@@ -16,4 +16,4 @@ Update the application.properties file according to your MySQL database settings
 The project can be run using a Java IDE such as IntelliJ IDEA or Eclipse.
 
 ## License
-This project is protected by MIT License. For more information, check the [LICENSE]([LICENSE](https://mit-license.org/)) file.
+This project is protected by MIT License. For more information, check the [LICENSE](https://mit-license.org/) file.
