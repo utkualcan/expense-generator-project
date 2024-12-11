@@ -53,6 +53,19 @@ public class Main {
         }
 
         while (true) {
+
+            Set<Integer> userIdsControl = expenseGeneratorService.getEmployeeUserIds();
+            Set<String> topicsControl = userIdsControl.stream()
+                    .map(userId -> "employee_expenses_" + userId)
+                    .collect(Collectors.toSet());
+
+            if (topicsControl.size() != topics.size()) {
+                topics = topicsControl;
+                expenseGeneratorService.updateTopics();
+                consumer.unsubscribe();
+                consumer.subscribe(topics);
+            }
+
             consumer.poll(Duration.ofMillis(1000)).forEach(record -> {
                 String expenseData = record.value();
                 System.out.println("Veri alındı: " + expenseData);
