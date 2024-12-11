@@ -6,6 +6,7 @@ import service.KafkaProducerService;
 
 import java.net.InetSocketAddress;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -62,7 +63,13 @@ public class Main {
                     try {
                         String empnoString = values[0].split(":")[1].trim();
                         int empno = Integer.parseInt(empnoString);
-                        String dateTime = values[1].split(":")[1].trim();
+
+                        String epochTimeString = values[1].split(":")[1].trim().replace("\"", "");
+                        double epochTime = Double.parseDouble(epochTimeString);
+                        long epochSeconds = (long) epochTime;
+                        int nanoAdjustment = (int) ((epochTime - epochSeconds) * 1_000_000_000);
+                        Instant dateTime = Instant.ofEpochSecond(epochSeconds, nanoAdjustment);
+
                         String description = values[3].split(":")[1].trim();
                         String type = values[4].split(":")[1].trim();
 
@@ -76,7 +83,6 @@ public class Main {
                             System.err.println("Hata: count değeri sayıya dönüştürülemedi: " + values[2]);
                         }
 
-
                         try {
                             String paymentString = values[5].split(":")[1].trim().replace("}", "");
                             payment = Double.parseDouble(paymentString);
@@ -84,7 +90,7 @@ public class Main {
                             System.err.println("Hata: payment değeri sayıya dönüştürülemedi: " + values[5]);
                         }
 
-                        String query = "INSERT INTO expenses (user_id, date_time, count, description, expense_type,payment) VALUES (?, ?, ?, ?, ?, ?)";
+                        String query = "INSERT INTO expenses (user_id, date_time, count, description, expense_type, payment) VALUES (?, ?, ?, ?, ?, ?)";
                         session[0].execute(query, empno, dateTime, count, description, type, payment);
 
                         System.out.println("Veri Cassandra'ya yazıldı: " + expenseData);
@@ -93,9 +99,10 @@ public class Main {
                         System.err.println("Veri işlenirken hata oluştu: " + e.getMessage());
                     }
                 } else {
-                    System.err.println("Invalid record: Expected 7 fields but received " + values.length + " - " + expenseData);
+                    System.err.println("Invalid record: Expected 6 fields but received " + values.length + " - " + expenseData);
                 }
             });
+
         }
     }
 }

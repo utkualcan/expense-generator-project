@@ -1,6 +1,7 @@
 package service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import config.KafkaConfig;
 import model.Expense;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Properties;
 
 public class KafkaProducerService {
+
     private static final Logger logger = LoggerFactory.getLogger(KafkaProducerService.class);
     private final KafkaProducer<String, String> producer;
     private final ObjectMapper objectMapper;
@@ -19,6 +21,8 @@ public class KafkaProducerService {
         Properties props = KafkaConfig.getProducerConfig();
         this.producer = new KafkaProducer<>(props);
         this.objectMapper = new ObjectMapper();
+
+        this.objectMapper.registerModule(new JavaTimeModule());
     }
 
     public void sendExpense(Expense expense) {

@@ -86,6 +86,13 @@
             <version>1.2.11</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.15.3</version> <!-- Jackson version your project uses -->
+        </dependency>
+
+
         <!-- MySQL JDBC Driver -->
         <dependency>
             <groupId>mysql</groupId>
