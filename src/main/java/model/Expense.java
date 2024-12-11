@@ -20,7 +20,7 @@ public class Expense {
 
     public Expense(int userId) {
         this.userId = userId;
-        this.dateTime = Instant.now();  // Anlık zaman bilgisi
+        this.dateTime = Instant.now();
         this.count = random.nextInt(1, 5);
 
         String selectedType = EXPENSE_TYPES[random.nextInt(EXPENSE_TYPES.length)];

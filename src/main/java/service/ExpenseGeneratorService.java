@@ -1,17 +1,19 @@
 package service;
 
+import com.datastax.oss.driver.api.core.CqlSession;
 import config.KafkaConfig;
 import model.Employee;
 import model.Expense;
 import repository.EmployeeRepository;
 import repository.KafkaTopicManager;
 
+import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Set;
-import java.util.HashSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class ExpenseGeneratorService {
     private final EmployeeRepository employeeRepository;
@@ -41,7 +43,10 @@ public class ExpenseGeneratorService {
 
         existingTopics.stream()
                 .filter(userId -> currentEmployees.stream().noneMatch(emp -> emp.getUserId() == userId))
-                .forEach(userId -> topicManager.deleteTopicForEmployee(userId));
+                .forEach(userId -> {
+                    topicManager.deleteTopicForEmployee(userId);
+                    deleteEmployeeFromCassandra(userId);
+                });
     }
 
     public void startExpenseGeneration() {
@@ -57,10 +62,25 @@ public class ExpenseGeneratorService {
 
     public Set<Integer> getEmployeeUserIds() {
         List<Employee> employees = employeeRepository.getAllEmployees();
-        Set<Integer> userIds = new HashSet<>();
-        for (Employee employee : employees) {
-            userIds.add(employee.getUserId());
-        }
-        return userIds;
+        return employees.stream()
+                .map(Employee::getUserId)
+                .collect(Collectors.toSet());
     }
+
+    private void deleteEmployeeFromCassandra(int userId) {
+        try (CqlSession session = CqlSession.builder()
+                .addContactPoint(new InetSocketAddress("127.0.0.1", 9042))
+                .withAuthCredentials("spark_user", "kurgualcan76")
+                .withKeyspace("expenses_ks")
+                .withLocalDatacenter("datacenter1")
+                .build()) {
+
+            String deleteQuery = "DELETE FROM expenses WHERE user_id = ?";
+            session.execute(deleteQuery, userId);
+            System.out.println("Cassandra'dan silinen çalışan id: " + userId);
+        } catch (Exception e) {
+            System.err.println("Cassandra'dan silerken hata oluştu: " + e.getMessage());
+        }
+    }
+
 }

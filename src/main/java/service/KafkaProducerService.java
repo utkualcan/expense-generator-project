@@ -21,7 +21,6 @@ public class KafkaProducerService {
         Properties props = KafkaConfig.getProducerConfig();
         this.producer = new KafkaProducer<>(props);
         this.objectMapper = new ObjectMapper();
-
         this.objectMapper.registerModule(new JavaTimeModule());
     }
 
